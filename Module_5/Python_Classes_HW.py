@@ -3,15 +3,15 @@ class GetInput:
         publication_type = input('*' * 10 + ' What type of publication would you like to add? ' + '*' * 10 +
                                  '\n"1" for News \n"2" for Private Ad \n"3" for Notes\n'
                                  'Please enter: ')
-        while publication_type not in ('1', '2', '3'):
-            publication_type = input('You entered incorrect value. Please, select once more: ')
-
         if publication_type == '1':
             publication_type = 'News'
         elif publication_type == '2':
             publication_type = 'Private Ad'
         elif publication_type == '3':
             publication_type = 'Self Notes'
+        else:
+            print('You entered incorrect value')
+            quit()
 
         return publication_type
 
@@ -24,29 +24,37 @@ class GetInput:
         return city_name
 
     def read_date(self):
-        date_until_actual = input('Please enter date until that the Ad is actual (using format "yyyy-mm-dd") : ')
-        return date_until_actual
+        from datetime import datetime
+        actual_until_date = input('Please enter date until that the Ad is actual (using format "yyyy-mm-dd") : ')
+
+        try:
+            datetime.strptime(actual_until_date, '%Y-%m-%d')
+        except ValueError:
+            print('Incorrect format of date. Should be "yyyy-mm-dd"')
+            quit()
+
+        return actual_until_date
 
     def read_tip_wish(self):
         is_tip_wish = input('Would you like to get a daily tip?' + '\nPlease enter "yes" or "no": ')
         is_tip_wish = is_tip_wish.lower().strip()
-        while is_tip_wish not in ('yes', 'no'):
-            is_tip_wish = input('You entered incorrect value. Please, select once more: ')
-            is_tip_wish = is_tip_wish.lower().strip()
+        if is_tip_wish != 'yes':
+            is_tip_wish = 'no'
         return is_tip_wish
 
 
-class News(GetInput):
-    def __init__(self, publication_type='None', user_text='None', city_name='None'):
-        self.publication_type = publication_type
-        self.user_text = user_text
-        self.city_name = city_name
-
+class Publish(GetInput):
     def publish_title(self, publication_type):
         file_to_save_data.write(publication_type + ' ' + (30 - len(publication_type) - 1) * '-')
 
     def publish_text(self, user_text):
         file_to_save_data.write('\n' + user_text)
+
+    def publish_last_block_line(self):
+        file_to_save_data.write('\n' + 30 * '-' + '\n\n\n')
+
+
+class News(Publish):
 
     def publish_city(self, city_name):
         file_to_save_data.write('\n' + city_name)
@@ -55,21 +63,8 @@ class News(GetInput):
         from datetime import datetime
         file_to_save_data.write(', ' + str(datetime.today()))
 
-    def publish_last_block_line(self):
-        file_to_save_data.write('\n' + 30 * '-' + '\n\n\n')
 
-
-class PrivateAd(GetInput):
-    def __init__(self, publication_type='None', user_text='None', actual_until_date='None'):
-        self.publication_type = publication_type
-        self.user_text = user_text
-        self.actual_until_date = actual_until_date
-
-    def publish_title(self, publication_type):
-        file_to_save_data.write(publication_type + ' ' + (30 - len(publication_type) - 1) * '-')
-
-    def publish_text(self, user_text):
-        file_to_save_data.write('\n' + user_text)
+class PrivateAd(Publish):
 
     def publish_date(self, actual_until_date):
         file_to_save_data.write('\n' + 'Actual until: ' + actual_until_date)
@@ -80,31 +75,18 @@ class PrivateAd(GetInput):
         actual_until_date = datetime.strptime(actual_until_date, "%Y-%m-%d")
         current_date = datetime.strptime(str(date.today()), "%Y-%m-%d")
 
+        if actual_until_date < current_date:
+            print('Please, note: Actual until date is earlier than the current date')
+
         days_left = str((actual_until_date - current_date).days)
         file_to_save_data.write(', ' + days_left + ' days left')
 
-    def publish_last_block_line(self):
-        file_to_save_data.write('\n' + 30 * '-' + '\n\n\n')
 
-
-class Notes(GetInput):
-    def __init__(self, publication_type='None', user_text='None', tip_wish='no'):
-        self.publication_type = publication_type
-        self.user_text = user_text
-        self.tip_wish = tip_wish
-
-    def publish_title(self, publication_type):
-        file_to_save_data.write(publication_type + ' ' + (30 - len(publication_type) - 1) * '-')
-
-    def publish_text(self, user_text):
-        file_to_save_data.write('\n' + user_text)
+class Notes(Publish):
 
     def publish_tip(self, tip_wish):
         if tip_wish == 'yes':
             file_to_save_data.write('\n' + 'You are doing great! Keep going ;-;')
-
-    def publish_last_block_line(self):
-        file_to_save_data.write('\n' + 30 * '-' + '\n\n\n')
 
 
 def main():
