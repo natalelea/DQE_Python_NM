@@ -174,32 +174,32 @@ class GetInputFromFile:
 
 class Publish(GetInputFromConsole, GetInputFromFile):
 
-    def publish_title(self, publication_type):
+    def publish_title(self, publication_type, file_to_save_data):
         file_to_save_data.write(publication_type + ' ' + (30 - len(publication_type) - 1) * '-')
 
-    def publish_text(self, user_text):
+    def publish_text(self, user_text, file_to_save_data):
         file_to_save_data.write('\n' + user_text)
 
-    def publish_last_block_line(self):
+    def publish_last_block_line(self, file_to_save_data):
         file_to_save_data.write('\n' + 30 * '-' + '\n\n\n')
 
 
 class News(Publish):
 
-    def publish_city(self, city_name):
+    def publish_city(self, city_name, file_to_save_data):
         file_to_save_data.write('\n' + city_name)
 
-    def publish_current_date(self):
+    def publish_current_date(self, file_to_save_data):
         from datetime import datetime
         file_to_save_data.write(', ' + str(datetime.today()))
 
 
 class PrivateAd(Publish):
 
-    def publish_date(self, actual_until_date):
+    def publish_date(self, actual_until_date, file_to_save_data):
         file_to_save_data.write('\n' + 'Actual until: ' + actual_until_date)
 
-    def publish_days_left(self, actual_until_date):
+    def publish_days_left(self, actual_until_date, file_to_save_data):
         from datetime import date, datetime
 
         actual_until_date = datetime.strptime(actual_until_date, "%Y-%m-%d")
@@ -214,9 +214,81 @@ class PrivateAd(Publish):
 
 class Notes(Publish):
 
-    def publish_tip(self, tip_wish):
+    def publish_tip(self, tip_wish, file_to_save_data):
         if tip_wish == 'yes':
             file_to_save_data.write('\n' + 'You are doing great! Keep going ;-;')
+
+
+class ProvideFileContentStatistics:
+
+    def publish_letters_statistics(self, file_to_save_data):
+        from string import ascii_lowercase
+        import csv
+
+        with open(file_to_save_data, 'r') as input_file:
+            file_content = input_file.read()
+
+        count_all_letters = 0
+        for i in file_content:
+            if i.lower() in ascii_lowercase:
+                count_all_letters += 1
+
+        with open('Letters_Statistics.csv', 'w', newline='') as output_file:
+            headers = ['letter', 'count_all', 'count_uppercase', 'percentage']
+            row_to_write = csv.DictWriter(output_file, fieldnames=headers, delimiter='|')
+            row_to_write.writeheader()
+
+            for i in ascii_lowercase:
+                letter = i
+                count_letter = 0
+                count_upper = 0
+                percentage = 0
+
+                for j in file_content:
+                    if i == j.lower():
+                        count_letter += 1
+                        if i.upper() == j:
+                            count_upper += 1
+
+                if count_all_letters != 0:
+                    percentage = round(count_letter / count_all_letters * 100, 2)
+
+                if count_letter > 0:
+                    row_to_write.writerow({'letter': letter,
+                                           'count_all': count_letter,
+                                           'count_uppercase': count_upper,
+                                           'percentage': percentage})
+
+    def publish_words_statistics(self, file_to_save_data):
+        import csv
+
+        with open(file_to_save_data, 'r') as input_file:
+            file_content = input_file.read()
+
+        for character_to_replace in [',', '.', '!', '?', '-', ':', ';']:
+            if character_to_replace in file_content:
+                file_content = file_content.replace(character_to_replace, '')
+
+        words_list_from_file = []
+        all_words_statistics = {}
+
+        for word in file_content.split():
+            if not word.isdigit():
+                words_list_from_file.append(word.lower())
+
+        for i in words_list_from_file:
+            dict_key = i
+            if dict_key in all_words_statistics.keys():
+                for one_word_dict_key in all_words_statistics:
+                    if one_word_dict_key == dict_key:
+                        all_words_statistics[dict_key] = all_words_statistics.get(dict_key) + 1
+            else:
+                all_words_statistics[dict_key] = 1
+
+        with open('Words_Statistics.csv', 'w', newline='') as output_file:
+            for i in all_words_statistics:
+                writer = csv.writer(output_file, delimiter='-')
+                writer.writerow([i, all_words_statistics[i]])
 
 
 def main():
@@ -226,29 +298,34 @@ def main():
         publication_type = GetInputFromConsole().read_publication_type()
         user_text = GetInputFromConsole().read_text()
 
+        file_to_save_data = open(filename, "a")
         if publication_type == 'News':
             input1 = News()
             city = input1.read_city()
-            input1.publish_title(publication_type)
-            input1.publish_text(user_text)
-            input1.publish_city(city)
-            input1.publish_current_date()
-            input1.publish_last_block_line()
+            input1.publish_title(publication_type, file_to_save_data)
+            input1.publish_text(user_text, file_to_save_data)
+            input1.publish_city(city, file_to_save_data)
+            input1.publish_current_date(file_to_save_data)
+            input1.publish_last_block_line(file_to_save_data)
         elif publication_type == 'Private Ad':
             input2 = PrivateAd()
             date_until_actual = input2.read_date()
-            input2.publish_title(publication_type)
-            input2.publish_text(user_text)
-            input2.publish_date(date_until_actual)
-            input2.publish_days_left(date_until_actual)
-            input2.publish_last_block_line()
+            input2.publish_title(publication_type, file_to_save_data)
+            input2.publish_text(user_text, file_to_save_data)
+            input2.publish_date(date_until_actual, file_to_save_data)
+            input2.publish_days_left(date_until_actual, file_to_save_data)
+            input2.publish_last_block_line(file_to_save_data)
         elif publication_type == 'Self Notes':
             input3 = Notes()
             tip_wish = input3.read_tip_wish()
-            input3.publish_title(publication_type)
-            input3.publish_text(user_text)
-            input3.publish_tip(tip_wish)
-            input3.publish_last_block_line()
+            input3.publish_title(publication_type, file_to_save_data)
+            input3.publish_text(user_text, file_to_save_data)
+            input3.publish_tip(tip_wish, file_to_save_data)
+            input3.publish_last_block_line(file_to_save_data)
+        file_to_save_data.close()
+        file_statistics = ProvideFileContentStatistics()
+        file_statistics.publish_letters_statistics(filename)
+        file_statistics.publish_words_statistics(filename)
 
     elif data_providing_way == 'File':
 
@@ -257,41 +334,45 @@ def main():
 
         if records_quantity == 'many':
             data = GetInputFromFile().read_many_rows_from_file(input_file_path)
-        elif records_quantity == 'one':
+        else:
             data = GetInputFromFile().read_one_row_from_file(input_file_path)
 
         for i in data:
             publication_type = GetInputFromFile().read_publication_type(i)
             user_text = GetInputFromFile().read_text(i)
+            file_to_save_data = open(filename, "a")
 
             if publication_type == 'News':
                 city = GetInputFromFile().read_city(i)
                 input1 = News()
-                input1.publish_title(publication_type)
-                input1.publish_text(user_text)
-                input1.publish_city(city)
-                input1.publish_current_date()
-                input1.publish_last_block_line()
+                input1.publish_title(publication_type, file_to_save_data)
+                input1.publish_text(user_text, file_to_save_data)
+                input1.publish_city(city, file_to_save_data)
+                input1.publish_current_date(file_to_save_data)
+                input1.publish_last_block_line(file_to_save_data)
             elif publication_type == 'Private Ad':
                 date_until_actual = GetInputFromFile().read_date(i)
                 input2 = PrivateAd()
-                input2.publish_title(publication_type)
-                input2.publish_text(user_text)
-                input2.publish_date(date_until_actual)
-                input2.publish_days_left(date_until_actual)
-                input2.publish_last_block_line()
+                input2.publish_title(publication_type, file_to_save_data)
+                input2.publish_text(user_text, file_to_save_data)
+                input2.publish_date(date_until_actual, file_to_save_data)
+                input2.publish_days_left(date_until_actual, file_to_save_data)
+                input2.publish_last_block_line(file_to_save_data)
             elif publication_type == 'Self Notes':
                 tip_wish = GetInputFromFile().read_tip_wish(i)
                 input3 = Notes()
-                input3.publish_title(publication_type)
-                input3.publish_text(user_text)
-                input3.publish_tip(tip_wish)
-                input3.publish_last_block_line()
+                input3.publish_title(publication_type, file_to_save_data)
+                input3.publish_text(user_text, file_to_save_data)
+                input3.publish_tip(tip_wish, file_to_save_data)
+                input3.publish_last_block_line(file_to_save_data)
+            file_to_save_data.close()
+            file_statistics = ProvideFileContentStatistics()
+            file_statistics.publish_letters_statistics(filename)
+            file_statistics.publish_words_statistics(filename)
+
         else:
             GetInputFromFile().delete_source_file(input_file_path)
 
 
-global file_to_save_data
-file_to_save_data = open("MyFile.txt", "a")
+filename = 'MyFile.txt'
 main()
-file_to_save_data.close()
