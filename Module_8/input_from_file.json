@@ -1,0 +1,17 @@
+[
+  {
+    "publication type": "News",
+    "text": "It's raining today",
+    "city": "London"
+  },
+  {
+    "publication type": "Private Ad",
+    "text": "Car for sale",
+    "actual_until": "2023-03-10"
+  },
+  {
+    "publication type": "Self Notes",
+    "text": "Need to order a new book",
+    "tip_wish": "No"
+  }
+]
