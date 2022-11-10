@@ -1,0 +1,35 @@
+<content>
+    <item>
+        <title>
+            News
+        </title>
+        <text>
+            Rain is expected for the next week
+        </text>
+        <city>
+            London
+        </city>
+    </item>
+    <item>
+        <title>
+            Private Ad
+        </title>
+        <text>
+            Contact me to buy handmade beaded bracelets
+        </text>
+        <actual_until>
+            2022-12-12
+        </actual_until>
+    </item>
+    <item>
+    <title>
+            Self Notes
+        </title>
+        <text>
+            Book tickets until end of the week
+        </text>
+        <tip_wish>
+            Yes
+        </tip_wish>
+    </item>
+</content>
